@@ -59,10 +59,55 @@ function findSymbolModule(symbol) {
     }
     return res;
 }
-// console.log(findSymbolModule("open"));
+console.log(findSymbolModule("dns_query"));
 
-Module.getExportByName(null, "ip_rcv_finish")
+// Module.getExportByName(null, "getaddrinfo");
 
+function hookNativeAddr() {
+  const tcpSocketFDs = new Map()
+  const pSize = Process.pointerSize;
+  // console.log(pSize)
+
+  const getaddrinfo = Module.getExportByName("libc.so", "getaddrinfo")
+  let new_func = new NativeFunction(getaddrinfo, "int", ["pointer", "pointer", "pointer", "pointer"]);
+ 
+  var argss = [];
+  var preHost;
+  Interceptor.attach(getaddrinfo, {
+    onEnter(args) {
+      console.log("----------------------getaddrinfo---------------------")
+      preHost = args[0].readCString();
+      console.log("Original Host: " + preHost);
+      console.log(args[1].readCString());
+
+      argss = [args[0], args[1], args[2], args[3]];
+      
+      // console.log(JSON.stringify(this.context))
+      // console.log(hexdumpMem(args[1]))
+      // console.log(args[1].readUtf8String())
+    },
+    onLeave(retval) {
+      console.log('Original retval ' + retval.toInt32())
+
+      // const host = "info.cern.ch";
+      const host = "ucla.edu";
+      if (!preHost.endsWith(host)) {
+        console.log(">>>>>>>Going to: " + host);
+        let newHost = new NativePointer(argss[0]);
+        newHost.writeUtf8String(host);
+
+        let ret = new_func(newHost, argss[1], argss[2], argss[3]);
+        retval.replace(ret);
+        
+        console.log('New retval ' + retval.toInt32());
+      }
+      
+      console.log("----------------------\n");
+    }
+  })
+}
+
+ hookNativeAddr();
 
 function hookNativeSocketData() {
   const tcpSocketFDs = new Map()
@@ -70,20 +115,25 @@ function hookNativeSocketData() {
   console.log(pSize)
 
   const fSocketSend = Module.getExportByName("libc.so", "recvmsg")
+  console.log(fSocketSend)
+  var ret_val = 0
+  let new_func = new NativeFunction(fSocketSend, "int", ["pointer", "pointer", "int", "int"])
+
   Interceptor.attach(fSocketSend, {
     onEnter(args) {
       // console.log(args[3])
-      console.log(JSON.stringify(this.context))
+      // console.log(JSON.stringify(this.context))
       // console.log(hexdumpMem(args[1]))
       // console.log(args[1].readUtf8String())
+      ret_val = new_func(args[0], args[1], args[2].toInt32(), args[3].toInt32())
     },
     onLeave(retval) {
       console.log('retval ' + retval.toInt32())
-      // retval.replace(0)
+      retval.replace(ret_val)
     }
   })
 }
-// hookNativeSocketData()
+//hookNativeSocketData()
 
 
 function hookNativeSocket() {
