@@ -102,7 +102,7 @@ function hookNativeAddr() {
         console.log('New retval ' + retval.toInt32());
       }
       
-      console.log("----------------------\n");
+      console.log("-----------------------\n");
     }
   })
 }
