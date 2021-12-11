@@ -37,7 +37,7 @@ function modifyJson(s) {
         let a = obj.current.temperature.value;
         // obj.current.temperature.value = "666";
         let output = JSON.stringify(obj);
-        return output.replaceAll(a, "-99");
+        return output.replaceAll(a, "");
     } catch {
         return s;
     }
@@ -64,7 +64,7 @@ const httpsUrlConnection = function() {
             var responseHeaders = "";
             var responseBody = "";
             var Connection = this;
-            var stream = stream = this.getInputStream.overloads[0].apply(this, arguments);
+            var stream = this.getInputStream.overloads[0].apply(this, arguments);
 
             var requestURL = Connection.getURL().toString();
             var requestMethod = Connection.getRequestMethod();
@@ -83,8 +83,8 @@ const httpsUrlConnection = function() {
                 }
             }
 
-            console.log("--Https Header:\n" + responseHeaders)
-
+            //console.log("--Https Header:\n" + responseHeaders)
+            console.log("Spoofing HTTPS response body...")
             var retval;
             if (stream) {
                 var baos = ByteArrayOutputStream.$new();
@@ -104,7 +104,7 @@ const httpsUrlConnection = function() {
                 retval = ByteArrayInputStream.$new(s2.getBytes());
             }
 
-            console.log("--Https Body:\n" + responseBody);
+            //console.log("--Https Body:\n" + responseBody);
 
             /*   --- Payload Header --- */
 
@@ -131,7 +131,7 @@ const httpsUrlConnection = function() {
         }
     }
 }
-Java.perform(httpsUrlConnection);
+// Java.perform(httpsUrlConnection);
 
 
 Java.perform(function() {
@@ -617,5 +617,5 @@ const unpinning = function() {
     }
 }
 
-// Java.perform(unpinning);
+Java.perform(unpinning);
 
